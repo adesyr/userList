@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Random User</title>
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+
+  <script>
+    var userList = [];
+
+    function loadCallback(response) {
+      //console.log(response.results);
+      userList = response.results;
+
+
+      let template = $("tbody tr").eq(0);
+      // on créé le shadowbody qui va être rempli
+      let shadowBody = $("<tbody></tbody>");
+      // on insere le template au shadowbody
+      shadowBody.append(template);
+      // on boucle pour chaque ligne du tableau
+      for (index in userList) {
+        let row = getRow(userList[index], template, index);
+        shadowBody.append(row);
+
+      }
+
+      $("tbody").replaceWith(shadowBody);
+    }
+
+    // comme le template est déclaré au dessus on le rajoute ici en argument
+    function getRow(user, template, index) {
+      console.log(user);
+      let row = template.clone().removeClass("hidden");
+      row.children().eq(0).text(user.name.first + " " + user.name.last);
+      //on est pas obligé de mettre td en param car c'est le seul enfant de row
+      row.children().eq(1).text(user.email);
+      row.children().eq(2).text(user.location.street + " " +
+        user.location.postcode + " " +
+        user.location.city);
+
+      // on enregistre l'index dans le bouton
+      row.children().eq(3).children("button").attr("data-index", index);
+      return row;
+    }
+
+    function loadRandomUser() {
+      //pour récupéerer le genre
+      let genderChoice = $("#genderSelect").val();
+      let natChoice = $("#natSelect").val();
+      let params = {
+        gender: genderChoice,
+        nationality: natChoice,
+        results: 20
+      }
+
+
+
+      // Pr affiner la recherche on peut préciser apres API "?"genre, nationalité...
+      $.get("https://randomuser.me/api", params, loadCallback);
+    }
+
+    // fonction pour afficher les details du bouton
+    function showUserDetails(){
+      let user = userList[$(this).attr("data-index")];
+      $("#userImage").attr("src", user.picture.large);
+      $("#userName").text(user.name.first + " " + user.name.last);
+
+      $(".userInfo").removeClass("hidden");
+
+
+    }
+    $(document).ready(function () {
+      $("#loadButton").click(loadRandomUser);
+      $("table").delegate(".details", "click", showUserDetails);
+    });
+
+  </script>
+  <style>
+    .hidden {
+      display: none;
+    }
+
+    .userInfo {
+      position: fixed;
+      top: 50px;
+      left: 50px;
+      background-color: white;
+    }
+
+  </style>
+</head>
+
+<body class="container-fluid">
+
+  <div class="row justify-content-center">
+    <div class="col-md-3 mt-4">
+      <div clas="form-group">
+        <label>Genre</label>
+        <select id="genderSelect" class="form-control">
+          <option value="female">Femme</option>
+          <option value="male">Homme</option>
+        </select>
+      </div>
+      <div clas="form-group">
+        <label>Nationalité</label>
+        <select id="natSelect" class="form-control">
+          <option value="fr">Française</option>
+          <option value="es">Espagnole</option>
+          <option value="au">Australienne</option>
+          <option value="us">Américaine</option>
+          <option value="tr">Tr</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-block" id="loadButton">Charger un utilisateur</button>
+    </div>
+  </div>
+  </div>
+
+  <table class="table table-bordered table-striped mt-5">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Adresse</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="hidden">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>
+          <button class="btn btn-success details">Voir les détails</button>
+        </td>
+
+      </tr>
+    </tbody>
+  </table>
+ <!-- Contenu html pour l'affichage des infos -->
+  <div class="card  userInfo hidden ">
+  <img class="card-img-top" id="userImage">
+  <div class="card-body">
+    <h4 class="card-title" id="userName"></h4>
+  </div>
+</body>
+
+</html>
